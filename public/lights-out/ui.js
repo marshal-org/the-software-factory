@@ -320,7 +320,9 @@ function verdict() {
   const spent = S.spent || UP.filter(x => S.own[x.id]).reduce((t, x) => t + price(x, S.P), 0);
   const big = v => v >= 1000 ? '$' + (v / 1000).toFixed(1) + 'M' : '$' + Math.round(v) + 'k';
   const n = v => v < 10 ? (Math.round(v * 10) / 10).toString() : Math.round(v).toLocaleString('en-US');
-  const from = base(S.P).flow, to = Math.max(sustained(), from);
+  const sus = sustained(), now = avg7(S);
+  // once the line has settled, show the measured number (the one in the signals row), capped at what it can sustain
+  const from = base(S.P).flow, to = Math.max(now >= sus * 0.9 ? Math.min(now, sus) : sus, from);
   return {grade, arch, journey: S.journey.map(x => stName[x]), devs: S.P.devs, from: n(from), to: n(to), times: Math.round(to / from), cost: big(spent), moves: Math.max(0, S.journey.length - 1)};
 }
 function shareImage(v) {
