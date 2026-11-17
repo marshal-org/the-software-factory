@@ -1,0 +1,25 @@
+---
+import Base from '../../layouts/Base.astro';
+const stories = Object.values(import.meta.glob('./*.md', { eager: true })).sort((a, b) => (a.frontmatter.date < b.frontmatter.date ? 1 : -1));
+---
+<Base title="Stories" description="Field stories from engineering teams adopting AI coding agents: where work piled up, what they changed, and which constraint showed up next.">
+  <h1>Stories</h1>
+  <p class="lede">Field notes from teams on the road: where work piled up, what they changed, and what broke next.</p>
+  <ol class="list">
+    {stories.map(s => <li><a href={s.url}><b>{s.frontmatter.title}</b><span>{s.frontmatter.summary}</span><small>{s.frontmatter.author}</small></a></li>)}
+  </ol>
+  <h2>Send yours</h2>
+  <div class="prose">
+    <p>A story is one Markdown file that answers four questions: where was work piling up, what did you change, what moved, and what became the constraint afterwards. Company names are optional. See <code>CONTRIBUTING.md</code> in the repository.</p>
+  </div>
+</Base>
+<style>
+.lede { font-size: 21px; line-height: 1.45; max-width: 58ch; margin: 24px 0; }
+.list { list-style: none; padding: 0; margin: 0; max-width: 760px; }
+.list li { border-top: 4px solid var(--ink); }
+.list a { display: grid; gap: 6px; padding: 18px 0 26px; color: var(--ink); text-decoration: none; }
+.list b { font: 900 clamp(28px, 4vw, 40px)/1 var(--display); text-transform: uppercase; }
+.list span { color: var(--muted); font-size: 18px; max-width: 60ch; }
+.list small { font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
+.list a:hover b { color: var(--accent); }
+</style>

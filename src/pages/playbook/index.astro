@@ -1,0 +1,29 @@
+---
+import Base from '../../layouts/Base.astro';
+const factors = Object.values(import.meta.glob('./*.md', { eager: true })).sort((a, b) => a.frontmatter.order - b.frontmatter.order);
+const acts = [1, 2, 3].map(n => ({ n, name: factors.find(f => f.frontmatter.act === n).frontmatter.actName, items: factors.filter(f => f.frontmatter.act === n) }));
+---
+<Base title="The Playbook" description="Plays for a software delivery line where AI coding agents do the work: find the constraint, set a baseline, give every agent an environment, earn trust with evidence, and more.">
+  <h1>The Playbook</h1>
+  <p class="lede">The plays that earned their place on a delivery line where agents do the work. Each one starts with a scene you will recognise and ends with a move you can make on Monday. Every play is a file in the repository, and a pull request is the way to disagree.</p>
+  {acts.map(a => (
+    <section class="act">
+      <h2><span>Part {a.n}</span>{a.name}</h2>
+      <ol class="cards" start={a.items[0].frontmatter.order}>
+        {a.items.map(f => <li><a href={f.url}><span class="n">{String(f.frontmatter.order).padStart(2, '0')}</span><b>{f.frontmatter.title}</b><em>{f.frontmatter.summary}</em></a></li>)}
+      </ol>
+    </section>
+  ))}
+</Base>
+<style>
+.lede { font-size: 21px; line-height: 1.45; max-width: 60ch; margin: 24px 0 8px; }
+.act h2 { display: flex; gap: 14px; align-items: baseline; border-bottom: 4px solid var(--ink); padding-bottom: 8px; }
+.act h2 span { font: 600 12px var(--mono); letter-spacing: .08em; color: var(--muted); }
+.cards { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0 28px; }
+.cards li { border-bottom: 1px solid var(--line); }
+.cards a { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; padding: 18px 0; color: var(--ink); text-decoration: none; height: 100%; align-content: start; }
+.cards .n { font: 900 54px/.8 var(--display); color: var(--accent); grid-row: span 2; }
+.cards b { font-size: 20px; line-height: 1.2; }
+.cards em { font-style: normal; color: var(--muted); font-size: 16px; line-height: 1.4; }
+.cards a:hover b { color: var(--accent); }
+</style>

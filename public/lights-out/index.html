@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lights Out: the software factory simulator · The Software Factory</title>
+<meta name="description" content="A free simulator of a software delivery line with AI coding agents. Find the bottleneck, automate it, and send every human home. Try it on your own team's numbers.">
+<link rel="canonical" href="https://thesoftwarefactory.site/lights-out/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:site_name" content="The Software Factory">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Lights Out: the software factory simulator">
+<meta property="og:description" content="Run a software factory. Find the bottleneck, automate it, and send every human home.">
+<meta property="og:url" content="https://thesoftwarefactory.site/lights-out/">
+<meta property="og:image" content="https://thesoftwarefactory.site/og-lights-out.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@marshalcodes">
+<meta name="twitter:creator" content="@ofirmakmal">
+<meta name="twitter:image" content="https://thesoftwarefactory.site/og-lights-out.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Lights Out","url":"https://thesoftwarefactory.site/lights-out/","applicationCategory":"GameApplication","operatingSystem":"Any","description":"A simulator of a software delivery line with AI coding agents. Find the bottleneck, automate it, and send every human home.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Ofir Makmal","url":"https://il.linkedin.com/in/ofirmakmal"},"isPartOf":{"@type":"WebSite","name":"The Software Factory","url":"https://thesoftwarefactory.site/"}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Plan: a one-screen control room. The pixel factory line sits on top; under it, three panes
+   share one row: signals with sparklines, the control panel for the selected station, the shift log.
+   People stand at the stations they gate. Each one you automate walks out and their lamp dies.
+   --d dims the room per lamp; --f flips the page to dark when the last lamp goes. */
+@property --d { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --f { syntax: '<number>'; inherits: true; initial-value: 0; }
+:root {
+  --d: 0; --f: 0;
+  --p: calc(var(--d) * 100%);
+  --pf: calc(var(--f) * 100%);
+  --bg:     color-mix(in oklab, #171c1a var(--p), #e4e6dd);
+  --panel:  color-mix(in oklab, #222a27 var(--p), #f4f5ef);
+  --line:   color-mix(in oklab, #3d4843 var(--p), #c3c8bc);
+  --ink:    color-mix(in oklab, #e9ece4 var(--pf), #18201d);
+  --muted:  color-mix(in oklab, #8c968f var(--pf), #5d6862);
+  --accent: color-mix(in oklab, #ffb347 var(--pf), #b86e00);
+  --bad:    color-mix(in oklab, #ff7557 var(--pf), #b5331c);
+  --ok:     color-mix(in oklab, #73d394 var(--pf), #25704a);
+  --warn:   color-mix(in oklab, #ffd35c var(--pf), #9a6a00);
+  --display: 'Big Shoulders Display', 'Arial Narrow', Impact, sans-serif;
+  --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+  transition: --d 1.8s ease, --f 1.8s ease;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 400 14px/1.45 var(--body); }
+.app { max-width: 1640px; margin: 0 auto; padding: 10px 16px 16px; display: grid; gap: 10px; }
+h2 { font: 900 15px var(--display); text-transform: uppercase; letter-spacing: .1em; margin: 0; color: var(--muted); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible, canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* top bar */
+.bar { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; justify-content: space-between; }
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand h1 { font: 900 36px/.9 var(--display); white-space: nowrap; text-transform: uppercase; margin: 0; }
+.brand h1 span { color: var(--accent); }
+.brand small { color: var(--muted); font-size: 12px; max-width: 12ch; line-height: 1.15; }
+.stats, .ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.stat { border: 1px solid var(--line); background: var(--panel); padding: 2px 8px; min-width: 70px; }
+.stat small { display: block; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+.stat b { font: 600 16px var(--mono); font-variant-numeric: tabular-nums; }
+.btn { border: 1px solid var(--ink); background: transparent; padding: 6px 9px; font-weight: 600; font-size: 12.5px; white-space: nowrap; }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.btn.go { background: var(--accent); border-color: var(--accent); color: #111; }
+
+/* stage: factory, signals and the board share one width so each column sits under its machine */
+.stage { overflow-x: auto; }
+.stage-in { min-width: 900px; display: grid; gap: 8px; }
+.scene { border: 1px solid var(--line); background: #171c1a; }
+.scene canvas { display: block; width: 100%; aspect-ratio: 1180 / 330; cursor: pointer; }
+
+.sigrow { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.sg { border: 1px solid var(--line); background: var(--panel); padding: 4px 8px 3px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 8px; align-items: end; }
+.sg { border-left-width: 5px; cursor: help; }
+.sg.g { border-left-color: var(--ok); }
+.sg.a { border-left-color: var(--warn); } .sg.a b, .sg.a u { color: var(--warn); }
+.sg.r { border-left-color: var(--bad); } .sg.r b, .sg.r u { color: var(--bad); }
+.sg u { text-decoration: none; font-weight: 600; }
+.sg small { grid-column: 1 / -1; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sg b { font: 600 15px/1.3 var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sg em { font-style: normal; font-size: 10px; margin-left: 3px; }
+.sg svg { width: 100%; height: 22px; display: block; color: var(--ink); overflow: visible; }
+.up { color: var(--ok); } .down { color: var(--bad); }
+
+.board { display: grid; grid-template-columns: repeat(7, minmax(0, 160fr)) 60fr; margin-top: -4px; }
+.bcol { display: grid; gap: 3px; align-content: start; padding: 0 3px; border-left: 1px solid var(--line); min-width: 0; }
+.bcol.sel { background: color-mix(in oklab, var(--accent) 10%, transparent); }
+.bh { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; padding: 1px 3px; }
+.bh b { font: 900 14px var(--display); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.bh i { font: 400 10.5px var(--mono); font-style: normal; color: var(--muted); white-space: nowrap; }
+.chip { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 6px; align-items: center; text-align: left; border: 1px solid var(--line); border-left-width: 4px; background: var(--panel); padding: 3px 6px; font-size: 12px; line-height: 1.2; width: 100%; min-height: 25px; }
+.chip .c { font: 600 11px var(--mono); color: var(--muted); white-space: nowrap; }
+.chip .n { min-width: 0; }
+.chip .why { flex-basis: 100%; font-size: 10.5px; line-height: 1.15; color: var(--bad); }
+.chip .why:empty { display: none; }
+.chip.ok { border-color: var(--accent); }
+.chip.ok .c { color: var(--accent); }
+.chip.ok:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--accent); }
+.chip.poor { color: var(--muted); }
+.chip.locked { color: var(--muted); border-style: dashed; border-left-style: solid; }
+.chip.own { border-color: var(--ok); background: transparent; }
+.chip.own .c { color: var(--ok); }
+.chip.cur { outline: 2px solid var(--ink); outline-offset: -1px; }
+.fix { border: 1px solid var(--bad); background: var(--bad); color: var(--bg); font-weight: 600; font-size: 11.5px; padding: 4px 6px; width: 100%; text-align: left; }
+.fix[hidden] { display: none; }
+
+.main { display: grid; gap: 10px; }
+.col { border: 1px solid var(--line); background: var(--panel); padding: 8px 12px; display: grid; gap: 6px; align-content: start; min-width: 0; max-height: 300px; overflow: auto; }
+.colh h2 { font: 900 15px var(--display); text-transform: uppercase; letter-spacing: .1em; margin: 0; color: var(--muted); }
+#tip { position: fixed; z-index: 5; width: 300px; border: 2px solid var(--ink); background: var(--panel); padding: 10px 12px; box-shadow: 4px 4px 0 var(--accent); pointer-events: none; display: grid; gap: 6px; }
+#tip[hidden] { display: none; }
+#tip.touch { pointer-events: auto; }
+#tip h3 { font: 900 22px/1 var(--display); text-transform: uppercase; margin: 0; }
+#tip p { margin: 0; font-size: 13px; color: var(--muted); }
+#tip .need { color: var(--bad); }
+.log { display: grid; gap: 4px; font-size: 12.5px; align-content: start; }
+.log div { display: grid; grid-template-columns: 54px 1fr; gap: 8px; }
+.log .num { color: var(--muted); font-size: 11.5px; }
+.log .warn { color: var(--bad); } .log .good { color: var(--ok); }
+.credit { color: var(--muted); font-size: 12.5px; margin: 0; border-top: 1px solid var(--line); padding-top: 10px; }
+.site { display: flex; flex-wrap: wrap; gap: 6px 20px; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.site .home { font: 900 22px/1 var(--display); text-transform: uppercase; letter-spacing: .03em; color: var(--ink); text-decoration: none; }
+.site .home:hover { color: var(--accent); }
+.site .links { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 14px; }
+.site .links a { color: var(--ink); text-decoration: none; border-bottom: 2px solid transparent; }
+.site .links a:hover { border-color: var(--accent); }
+.site .gh { border: 1px solid var(--ink) !important; padding: 2px 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.site .gh::before { content: ''; width: 15px; height: 15px; background: currentColor; -webkit-mask: url(/logos/github.svg) center / contain no-repeat; mask: url(/logos/github.svg) center / contain no-repeat; }
+.site a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* dialogs */
+dialog { border: 2px solid var(--accent); background: var(--panel); color: var(--ink); padding: 20px; width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto; }
+dialog::backdrop { background: rgba(5, 8, 7, .7); }
+dialog h3 { font: 900 34px/1 var(--display); text-transform: uppercase; margin: 0 0 10px; }
+dialog p, dialog li { color: var(--muted); max-width: 64ch; }
+dialog ol { padding-left: 20px; }
+.form { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px 14px; margin: 12px 0; }
+.form label { display: grid; gap: 3px; font-size: 12px; color: var(--muted); }
+.form input, .form select { border: 1px solid var(--line); background: var(--bg); padding: 6px 8px; font-family: var(--mono); width: 100%; }
+.dx { border-left: 3px solid var(--accent); padding: 4px 0 4px 12px; margin: 12px 0; }
+.dx[hidden] { display: none; }
+.dx b { font: 900 26px var(--display); text-transform: uppercase; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+#shareimg { width: 100%; border: 1px solid var(--line); display: block; }
+
+/* wide screens: the shift log sits beside the factory and takes its height */
+@media (min-width: 1240px) {
+  .main { grid-template-columns: minmax(0, 1fr) 300px; }
+  .side { position: relative; }
+  .side .col { position: absolute; inset: 0; max-height: none; }
+}
+@media (prefers-reduced-motion: reduce) { :root { transition: none; } .chip.ok:hover { transform: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+
+<nav class="site" aria-label="Site">
+  <a class="home" href="/">← The Software Factory</a>
+  <span class="links"><a href="/manifesto/">Manifesto</a><a href="/playbook/">Playbook</a><a href="/journey/">Journey</a><a href="/stories/">Stories</a><a class="gh" href="https://github.com/marshal-org/the-software-factory" target="_blank" rel="noopener">GitHub</a></span>
+</nav>
+<header class="bar">
+  <div class="brand"><h1>Lights <span>out</span></h1></div>
+  <div class="stats">
+    <div class="stat"><small>Day</small><b id="day">0</b></div>
+    <div class="stat"><small>Budget</small><b id="budget">$0k</b></div>
+    <div class="stat" id="stat-early" tabindex="0" style="cursor:help"><small>Early spend ⓘ</small><b id="early">$0k</b></div>
+    <div class="stat"><small>Humans in loop</small><b id="loop">5</b></div>
+    <div class="stat"><small>Team</small><b id="team">10 eng</b></div>
+  </div>
+  <div class="ctl">
+    <button class="btn" id="pause" aria-pressed="false">Pause</button>
+    <button class="btn" id="fast" aria-pressed="false">3× speed</button>
+    <button class="btn" id="snd" aria-pressed="false">Sound off</button>
+    <button class="btn" id="chaos" aria-pressed="true">Chaos on</button>
+    <button class="btn go" id="org">My factory</button>
+    <button class="btn" id="help">How to play</button>
+    <button class="btn" id="restart">Restart</button>
+  </div>
+</header>
+
+<div class="main">
+<div class="stage"><div class="stage-in">
+  <section class="sigrow" id="sig" aria-label="Signals, last 90 days. Ticks mark purchases."></section>
+  <section class="scene"><canvas id="cv" width="1180" height="330" tabindex="0" aria-label="Animated factory line with seven stations: Spec, Code, CI, Verify, Review, Merge, Release. The optimizations for each station are listed in the column under it."></canvas></section>
+  <section class="board" id="board" aria-label="Control panel: optimizations per station"></section>
+</div></div>
+<aside class="side"><div class="col">
+  <div class="colh"><h2>Shift log</h2></div>
+  <div class="log" id="log"></div>
+</div></aside>
+</div>
+<footer class="credit">A community project about the road to software factories. Started by <a href="https://il.linkedin.com/in/ofirmakmal" rel="me noopener" style="color:inherit;font-weight:600">Ofir Makmal</a> (<a href="https://x.com/ofirmakmal" rel="me noopener" style="color:inherit">X</a>), founder of <a href="https://marshal.codes/?utm_source=thesoftwarefactory" style="color:inherit;font-weight:600;white-space:nowrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="13" height="13" style="vertical-align:-2px;margin-right:3px" aria-hidden="true"><defs><linearGradient id="mg" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#F4C658"></stop><stop offset="1" stop-color="#D49A28"></stop></linearGradient></defs><rect width="1024" height="1024" rx="228" fill="url(#mg)"></rect><g transform="translate(212,212) scale(5)"><path d="M60 14 L100 30 V58 C100 84 82 102 60 110 C38 102 20 84 20 58 V30 Z" fill="none" stroke="#070B17" stroke-width="6" stroke-linejoin="round"></path><polyline points="54,44 74,62 54,80" fill="none" stroke="#070B17" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></polyline></g></svg>Marshal</a> (<a href="https://x.com/marshalcodes" rel="noopener" style="color:inherit">X</a>) and <a href="https://runlease.online/?utm_source=thesoftwarefactory" style="color:inherit;font-weight:600;white-space:nowrap"><svg width="13" height="13" style="vertical-align:-2px;margin-right:3px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-hidden="true">
+  
+  <path fill="#D97F00" d="M6 2h20a4 4 0 0 1 4 4v12.6L18.6 30H6a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4z"/>
+  <path fill="#2F63E6" d="M22.4 30 30 22.4V27a3 3 0 0 1-3 3z"/>
+  <path fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="m9 9.5 6 5-6 5"/>
+  <path fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" d="M17.5 20.5h3"/>
+</svg>Runlease</a>. He has led engineering at several startups as VP Engineering and CTO, and spent years as a consultant helping dozens of engineering teams tune both their software and the way they deliver it. This is a model: wrong in the details, useful for the shape. <a href="/privacy/" style="color:inherit">Privacy</a></footer>
+<div id="tip" hidden></div>
+</div>
+
+<dialog id="dlg-help">
+  <h3>How to read the floor</h3>
+  <ol>
+    <li>Boxes are tasks. Find the machine with a full meter and a growing pile in front of it. That is the constraint.</li>
+    <li>The optimizations for each machine are listed in the column under it. Hover one to read it, click to install. Amber edge: you can afford it. Dashed: it says what it needs first. Green: installed. Ten days later the log says whether shipped tasks per day moved, and the sparklines show it.</li>
+    <li>Early spend starts at $0 and adds up the price of every capacity optimization you install at a station that is not the constraint at that moment. You may need it later, but today it buys nothing. The lower it is at the end, the better your grade.</li>
+    <li>When one pile drains, another starts. Go back to step 1.</li>
+    <li>Every signal has a traffic light: green is healthy, amber is worth watching, red is a problem. Hover a signal to read what it means and what usually fixes it.</li>
+    <li>Red boxes on the top pipe are rework going back to Code. A red beacon means an incident has stopped a station. Wait it out, or pay to clear it from that station's column.</li>
+    <li>Each person on the floor is a human gate. Automate the gate and they go home. You win when all five lamps are out.</li>
+  </ol>
+  <div class="row"><button class="btn" data-close>Close</button></div>
+</dialog>
+
+<dialog id="dlg-org">
+  <h3>Diagnose my factory</h3>
+  <p>Enter rough numbers for your own team. The simulator starts from your line, names your constraint today and suggests the first three moves.</p>
+  <div class="form">
+    <label for="o-devs">Engineers<input id="o-devs" type="number" min="1" max="2000" value="10"></label>
+    <label for="o-prw">PRs merged per week<input id="o-prw" type="number" min="1" max="20000" value="30"></label>
+    <label for="o-ci">CI run, minutes<input id="o-ci" type="number" min="1" max="600" value="28"></label>
+    <label for="o-rev">Wait for first review, hours<input id="o-rev" type="number" min="0.5" max="200" step="0.5" value="6"></label>
+    <label for="o-envs">Shared test environments<input id="o-envs" type="number" min="1" max="200" value="2"></label>
+    <label for="o-dpw">Production deploys per week<input id="o-dpw" type="number" min="0.25" max="500" step="0.25" value="1"></label>
+    <label for="o-pms">People writing specs<input id="o-pms" type="number" min="1" max="500" value="2"></label>
+    <label for="o-ai">AI in use today<select id="o-ai"><option value="auto">Autocomplete in the editor</option><option value="agents">Coding agents on laptops</option></select></label>
+  </div>
+  <div class="dx" id="dx" hidden></div>
+  <div class="row"><button class="btn" id="o-dx">Diagnose</button><button class="btn go" id="o-play">Play my factory</button><button class="btn" id="o-reset">Back to the default team</button><button class="btn" data-close>Cancel</button></div>
+</dialog>
+
+<dialog id="dlg-end">
+  <h3>Lights out</h3>
+  <img id="shareimg" alt="Shift report card">
+  <p id="r-text" class="num" style="white-space:pre-line;font-size:12.5px;margin:10px 0 0"></p>
+  <div class="row"><button class="btn go" id="copyimg">Copy image</button><button class="btn" id="copy">Copy text</button><button class="btn" data-close>Keep playing</button><span id="copied"></span></div>
+</dialog>
+
+<script defer src="/analytics.js"></script>
+<script src="model.js"></script>
+<script src="ui.js"></script>
+</body>
+</html>

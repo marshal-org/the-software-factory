@@ -1,0 +1,70 @@
+---
+import Base from '../layouts/Base.astro';
+const P = '/playbook/';
+const stages = [
+  { name: 'By hand', looks: 'People type. Autocomplete helps.', constraint: 'Typing and coding time', fix: 'Agentic coders, voice dictation', plays: [] },
+  { name: 'Agents on laptops', looks: 'Two or three agents per engineer, and every action waits for an approval.', constraint: 'Approvals and laptop capacity', fix: 'A sandbox, auto-approve, an agent dev platform', plays: [['Guardrails before autonomy', 'guardrails-before-autonomy']] },
+  { name: 'Parallel agents', looks: 'Eight sessions per engineer, off the laptop.', constraint: 'CI time and shared staging', fix: 'Affected-only CI, an environment per agent', plays: [['Give every agent its own environment', 'environment-per-agent']] },
+  { name: 'Agents verify', looks: 'Agents bring up the product and prove their own work end to end.', constraint: 'One person\'s attention, and the review queue', fix: 'An orchestrator, AI reviewers', plays: [['Agents prove their own work', 'agents-prove-their-work'], ['Take people out of the synchronous loop', 'out-of-the-synchronous-loop']] },
+  { name: 'Merge on evidence', looks: 'Most changes merge without a person reading them.', constraint: 'Merge conflicts and release cadence', fix: 'A merge queue, continuous deploy', plays: [['Trust is earned with evidence', 'trust-is-earned-with-evidence']] },
+  { name: 'Lights out', looks: 'Specs in, software out. Nobody stands in the line.', constraint: 'Deciding what to build', fix: 'Agent-drafted specs, engineers who own outcomes', plays: [['Keep the line fed', 'keep-the-line-fed']] },
+];
+// each stage is a little darker than the one before, until the lights are out
+const bg = ['#fbfbf8', '#e9ebe2', '#cfd3c6', '#8d968c', '#454f4a', '#171c1a'];
+const dark = [false, false, false, true, true, true];
+---
+<Base title="Journey" type="article" author="Ofir Makmal" description="The stages on the road from AI autocomplete to a lights-out software factory, and the bottleneck that usually shows up at each one.">
+  <span class="draft">Open for argument</span>
+  <h1>Journey</h1>
+  <p class="lede">The road has stages, and each stage has a constraint that tends to show up first. This map comes out of tuning real delivery lines. At each stage it asks the question a team actually faces: what is holding the line right now, and what usually relieves it?</p>
+
+  <ol class="road">
+    {stages.map((s, i) => (
+      <li class={dark[i] ? 'stage dk' : 'stage'} style={`--cb:${bg[i]}`}>
+        <div class="no">
+          <span>{i}</span>
+          <div class="bulbs" aria-label={`${5 - i} of 5 lights still on`}>{[0, 1, 2, 3, 4].map(b => <i class={b < 5 - i ? 'on' : ''}></i>)}</div>
+        </div>
+        <div class="body">
+          <h2>{s.name}</h2>
+          <p class="looks">{s.looks}</p>
+          <dl>
+            <div class="con"><dt>The constraint that shows up</dt><dd>{s.constraint}</dd></div>
+            <div><dt>What usually relieves it</dt><dd>{s.fix}</dd></div>
+          </dl>
+          {s.plays.length > 0 && <p class="plays">Plays: {s.plays.map(([t, slug], j) => <>{j > 0 && ', '}<a href={`${P}${slug}/`}>{t}</a></>)}</p>}
+        </div>
+      </li>
+    ))}
+  </ol>
+
+  <div class="prose after">
+    <p>The order is typical, not fixed. A team with a 90-minute CI run meets that constraint at stage 1. A team with a strict change-approval process meets release cadence long before stage 4. <a href="/lights-out/">Lights Out</a> lets you enter your own numbers and see where your line starts.</p>
+    <h2>A note on levels</h2>
+    <p>Numbering the stages of autonomy is an idea inspired by Dan Shapiro's <a href="https://www.danshapiro.com/blog/2026/01/the-five-levels-from-spicy-autocomplete-to-the-software-factory/">five levels</a> of AI-assisted programming. This map looks at the same road from another side: the constraints you meet on the way, and the order you tend to meet them in.</p>
+  </div>
+</Base>
+<style>
+.lede { font-size: 21px; line-height: 1.45; max-width: 62ch; margin: 24px 0 36px; }
+.road { list-style: none; margin: 0; padding: 0; display: grid; }
+.stage { --ct: #18201d; --cm: #55605a; --ca: #a35f00; background: var(--cb); color: var(--ct); display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 0 28px; padding: 26px 28px 28px; border-left: 8px solid #e0a21a; }
+.stage.dk { --ct: #f1f2ec; --cm: #c3c9c0; --ca: #ffb347; }
+.no span { font: 900 120px/.8 var(--display); color: var(--ca); display: block; }
+.bulbs { display: flex; gap: 6px; margin-top: 14px; }
+.bulbs i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--cm); }
+.bulbs i.on { background: #ffd24a; border-color: #ffd24a; box-shadow: 0 0 10px 2px #ffc93a99; }
+.body h2 { margin: 0; font-size: 38px; color: var(--ct); }
+.looks { font-size: 19px; margin: 8px 0 16px; max-width: 52ch; }
+dl { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 28px; }
+dt { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--cm); }
+dd { margin: 4px 0 0; font-size: 18px; font-weight: 600; }
+.con dd { color: var(--ca); font-size: 22px; line-height: 1.2; }
+.plays { margin: 16px 0 0; font-size: 15px; color: var(--cm); }
+.plays a { color: var(--ct); }
+.after { margin-top: 40px; }
+@media (max-width: 640px) {
+  .stage { grid-template-columns: 1fr; padding: 20px; }
+  .no { display: flex; align-items: end; gap: 16px; margin-bottom: 10px; }
+  .no span { font-size: 84px; }
+}
+</style>

@@ -1,0 +1,90 @@
+---
+import Base from '../layouts/Base.astro';
+const plays = Object.values(import.meta.glob('./playbook/*.md', { eager: true })).sort((a, b) => a.frontmatter.order - b.frontmatter.order);
+const stories = Object.values(import.meta.glob('./stories/*.md', { eager: true }));
+const start = [
+  ['/lights-out/', 'Play the simulator', 'Lights Out puts you in charge of a ten-engineer delivery line. Find where work piles up, install the right optimization, and watch the next pile appear. You can load your own team\'s numbers.'],
+  ['/playbook/', 'Read the Playbook', 'The plays that hold up in practice. Each one opens with a scene you will recognise and closes with a move for Monday.'],
+  ['/manifesto/', 'Argue with the manifesto', 'Seven beliefs about shipping software with agents, and a list of things we refuse.'],
+  ['/journey/', 'Find your stage', 'Six stages from autocomplete to lights out, with the bottleneck that tends to show up at each.'],
+];
+---
+<Base title="" fullTitle="The Software Factory | Build with AI coding agents" description="A community guide to building a software factory with AI coding agents: a simulator, a playbook, a manifesto and stories from real teams.">
+  <section class="hero">
+    <h1>You do not install a software factory. You tune one.</h1>
+    <p class="lede">Agents made writing code cheap. The rest of your delivery line did not get the memo. This is a community guide to the road from AI-assisted coding to a factory that ships with the lights out, one constraint at a time.</p>
+    <p><a class="btn" href="/lights-out/">Play Lights Out</a> <a class="more" href="/manifesto/">Read the manifesto</a></p>
+  </section>
+
+  <section class="sim">
+    <a href="/lights-out/" aria-label="Open the Lights Out simulator">
+      <div class="line" aria-hidden="true">{['Spec', 'Code', 'CI', 'Verify', 'Review', 'Merge', 'Release'].map((s, i) => <div class="m"><i style={`height:${[0, 54, 46, 10, 14, 6, 6][i]}px`}></i><span>{s}</span></div>)}</div>
+    </a>
+    <p>Work piles up in front of the constraint. Fix it and the pile moves somewhere else. That is the whole idea, and the simulator lets you feel it in ten minutes.</p>
+  </section>
+
+  <section class="two">
+    <div>
+      <h2>The factory is your line</h2>
+      <p>A software factory is the way your team already delivers software, from spec to release, with AI coding agents doing the building and people deciding what gets built. Nobody can sell you one.</p>
+      <p>You will install tools along the way: coding agents, an AI code reviewer, an agent dev platform, security and governance tooling, elastic CI. Each of them is a part. You tune the line itself, and you bring in a tool when it relieves the constraint in front of you.</p>
+      <p><a href="/what-is-a-software-factory/">What is a software factory, exactly?</a></p>
+    </div>
+    <div>
+      <h2>Why tune, and never install</h2>
+      <p>Speed up the developers and code review backs up. Fix review and QA drowns. Help QA and CI falls over. Fix CI and you run out of well-defined work to build. Every fix is real, and every fix moves the problem one station down the line.</p>
+      <p>Teams that expect this get there in months. Teams that buy a tool and wait are still waiting.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Start here</h2>
+    <ul class="start">
+      {start.map(([href, t, d]) => <li><a href={href}>{t}</a><p>{d}</p></li>)}
+    </ul>
+  </section>
+
+  <section>
+    <h2>The Playbook</h2>
+    <p class="sub">Each play starts with a scene you will recognise and ends with something to do on Monday.</p>
+    <ol class="factors">
+      {plays.map(f => <li><a href={f.url}>{f.frontmatter.title}</a><p>{f.frontmatter.summary}</p></li>)}
+    </ol>
+  </section>
+
+  <section>
+    <h2>From the floor</h2>
+    {stories.map(s => <article class="story"><a href={s.url}>{s.frontmatter.title}</a><p>{s.frontmatter.summary} By {s.frontmatter.author}.</p></article>)}
+    <p class="sub">Been through it yourself? <a href="/stories/">Send your story.</a></p>
+  </section>
+</Base>
+<style>
+.hero h1 { max-width: 17ch; }
+.lede { font-size: 21px; line-height: 1.45; max-width: 58ch; margin: 24px 0; }
+.more { margin-left: 18px; }
+.sim { margin-top: 56px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; align-items: end; }
+.sim p { margin: 0; color: var(--muted); max-width: 46ch; }
+.line { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; align-items: end; border-bottom: 6px solid var(--ink); padding: 60px 0 0; }
+.m { display: grid; justify-items: start; gap: 4px; }
+.m i { width: 60%; background: repeating-linear-gradient(0deg, var(--accent) 0 8px, transparent 8px 10px); }
+.m span { background: var(--ink); color: var(--bg); font: 900 13px var(--display); text-transform: uppercase; letter-spacing: .05em; width: 100%; padding: 14px 4px; text-align: center; }
+.sub { color: var(--muted); margin: 8px 0 0; }
+.factors { list-style: none; padding: 0; margin: 20px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0 28px; counter-reset: f; }
+.factors li { counter-increment: f; border-top: 1px solid var(--line); }
+.factors li { display: grid; grid-template-columns: 34px 1fr; gap: 2px 8px; padding: 12px 0; }
+.factors li::before { content: counter(f, decimal-leading-zero); font: 600 13px var(--mono); color: var(--accent); grid-row: span 2; padding-top: 3px; }
+.factors a { color: var(--ink); text-decoration: none; font-weight: 600; }
+.factors a:hover { color: var(--accent); }
+.factors p { margin: 0; grid-column: 2; color: var(--muted); font-size: 15px; line-height: 1.4; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 48px; }
+.two p { max-width: 54ch; }
+.start { list-style: none; padding: 0; margin: 20px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px 28px; }
+.start li { border-top: 4px solid var(--ink); padding-top: 12px; }
+.start a { font: 900 24px/1.05 var(--display); text-transform: uppercase; color: var(--ink); text-decoration: none; }
+.start a:hover { color: var(--accent); }
+.start p { margin: 8px 0 0; color: var(--muted); font-size: 16px; line-height: 1.45; }
+.story { border-top: 4px solid var(--ink); padding: 14px 0 6px; margin-top: 20px; max-width: 760px; }
+.story a { font: 900 30px/1.05 var(--display); text-transform: uppercase; color: var(--ink); text-decoration: none; }
+.story a:hover { color: var(--accent); }
+.story p { margin: 8px 0 0; color: var(--muted); }
+</style>

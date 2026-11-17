@@ -1,0 +1,37 @@
+---
+import Base from './Base.astro';
+import { PLAYS } from '../plays.js';
+const { frontmatter } = Astro.props;
+const i = PLAYS.findIndex(f => f.order === frontmatter.order);
+const prev = PLAYS[i - 1], next = PLAYS[i + 1];
+const num = String(frontmatter.order).padStart(2, '0');
+---
+<Base title={frontmatter.title} description={frontmatter.description ?? frontmatter.summary} type="article" author="Ofir Makmal">
+  <article class="factor">
+    <p class="eyebrow"><a href="/playbook/">The Playbook</a> · Part {frontmatter.act}: {frontmatter.actName}</p>
+    <div class="head"><span class="num">{num}</span><h1>{frontmatter.title}</h1></div>
+    <p class="hook">{frontmatter.summary}</p>
+    <div class="prose body"><slot /></div>
+    <nav class="pn" aria-label="More plays">
+      {prev ? <a href={`/playbook/${prev.slug}/`}><small>Previous</small>{prev.title}</a> : <span></span>}
+      {next ? <a class="nx" href={`/playbook/${next.slug}/`}><small>Next</small>{next.title}</a> : <a class="nx" href="/lights-out/"><small>Now try it</small>Play Lights Out</a>}
+    </nav>
+  </article>
+</Base>
+<style>
+.factor { max-width: 760px; }
+.eyebrow { font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 18px; }
+.eyebrow a { color: var(--muted); }
+.head { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: end; }
+.num { font: 900 clamp(90px, 16vw, 170px)/.78 var(--display); color: var(--accent); }
+.head h1 { font-size: clamp(34px, 5.5vw, 60px); padding-bottom: 6px; }
+.hook { font: 500 clamp(22px, 3vw, 30px)/1.25 var(--body); margin: 28px 0 8px; padding: 18px 0 18px 22px; border-left: 8px solid var(--accent); max-width: 26ch; }
+.body :global(h2) { font-size: 20px; letter-spacing: .1em; color: var(--muted); margin-top: 36px; }
+.body :global(p), .body :global(li) { font-size: 18px; }
+.body :global(h2 + p) { margin-top: 8px; }
+.pn { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 56px; border-top: 1px solid var(--line); padding-top: 18px; }
+.pn a { color: var(--ink); text-decoration: none; font-weight: 600; font-size: 18px; }
+.pn a:hover { color: var(--accent); }
+.pn small { display: block; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.pn .nx { text-align: right; }
+</style>
