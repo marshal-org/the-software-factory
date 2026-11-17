@@ -1,7 +1,8 @@
 // Page views and a few game events for thesoftwarefactory.site.
 //
-// This is the whole of it. No third-party code runs on this site: this file
-// sends small requests to PostHog and that is all.
+// This file sends small requests to PostHog and nothing else. It runs for
+// every visitor and needs no consent, because it stores nothing. (Google
+// Analytics is separate, in consent.js, and loads only for visitors who accept.)
 //
 //   - No cookies, and nothing stored in the browser.
 //   - No visitor ID is made here. PostHog derives an anonymous one from a

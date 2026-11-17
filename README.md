@@ -41,7 +41,7 @@ Requires Node 22 or newer. The site is built with [Astro](https://astro.build) a
 
 ## Privacy
 
-The site counts page views and a few game events with one small first-party script, [`public/analytics.js`](public/analytics.js): no cookies, no third-party code, and the numbers typed into "My factory" never leave the browser. Details on the [privacy page](https://thesoftwarefactory.site/privacy/).
+The site counts page views and a few game events with one small first-party script, [`public/analytics.js`](public/analytics.js), which sets no cookies. Google Analytics is loaded by [`public/consent.js`](public/consent.js) only for visitors who accept it, and they are asked once. The numbers typed into "My factory" never leave the browser. Details on the [privacy page](https://thesoftwarefactory.site/privacy/).
 
 ## Who is behind it
 

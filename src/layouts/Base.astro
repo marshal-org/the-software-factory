@@ -94,6 +94,7 @@ footer .row { display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content: sp
 footer .nw { white-space: nowrap; }
 </style>
 <script is:inline defer src="/analytics.js"></script>
+<script is:inline defer src="/consent.js"></script>
 </head>
 <body>
 <div class="shell">
@@ -114,7 +115,7 @@ footer .nw { white-space: nowrap; }
       <a class="co" href="https://runlease.online/?utm_source=thesoftwarefactory"><img src="/logos/runlease.svg" alt="Runlease logo" width="16" height="16" />Runlease</a>.
       He has led engineering at several startups as VP Engineering and CTO, and spent years as a consultant helping dozens of engineering teams tune both their software and the way they deliver it.</p>
     <div class="row">
-      <span><a href="/what-is-a-software-factory/">What is a software factory?</a> · <a href="/privacy/">Privacy</a> · Code MIT, words CC BY 4.0</span>
+      <span><a href="/what-is-a-software-factory/">What is a software factory?</a> · <a href="/privacy/">Privacy</a> · <a href="/privacy/" data-consent-open>Cookie settings</a> · Code MIT, words CC BY 4.0</span>
       <span class="share">Share this page: <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}`} target="_blank" rel="noopener">LinkedIn</a><a href={`https://x.com/intent/post?url=${encodeURIComponent(canonical)}&text=${encodeURIComponent(title || 'The Software Factory')}&via=${xSite.slice(1)}`} target="_blank" rel="noopener">X</a><a href={`https://wa.me/?text=${encodeURIComponent((title || 'The Software Factory') + ' ' + canonical)}`} target="_blank" rel="noopener">WhatsApp</a></span>
     </div>
   </footer>
