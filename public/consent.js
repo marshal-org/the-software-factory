@@ -47,7 +47,7 @@
     bar = document.createElement('div');
     bar.setAttribute('role', 'dialog'); bar.setAttribute('aria-label', 'Cookie consent');
     bar.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:50;background:#18201d;color:#f1f2ec;padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:center;font:400 14px/1.4 "IBM Plex Sans",system-ui,sans-serif;box-shadow:0 -2px 12px rgba(0,0,0,.25)';
-    var btn = 'font:600 14px "IBM Plex Sans",system-ui,sans-serif;padding:7px 16px;cursor:pointer;border:1px solid #f1f2ec;';
+    var btn = 'font:inherit;font-weight:600;padding:7px 16px;cursor:pointer;border:1px solid #f1f2ec;border-radius:0;';
     bar.innerHTML = '<span style="max-width:64ch">This site would like to use Google Analytics to see how it is used. It sets cookies only if you accept. <a href="/privacy/" style="color:#ffb347">Privacy</a></span>' +
       '<span style="display:flex;gap:8px"><button type="button" data-a="yes" style="' + btn + 'background:#ffb347;border-color:#ffb347;color:#111">Accept</button>' +
       '<button type="button" data-a="no" style="' + btn + 'background:transparent;color:#f1f2ec">Decline</button></span>';
