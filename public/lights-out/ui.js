@@ -306,6 +306,12 @@ function render() {
 }
 
 /* ---------- report and share image ---------- */
+// what the line ships per day once it is flowing: the slowest station, with rework counted.
+// A backlog draining through can push a week above this for a while, so the report uses this and not the peak.
+function sustained() {
+  const cc = caps(S.own, S.P), k = 1 / (1 - cc.rework);
+  return Math.min(cc.spec, cc.code / k, cc.ci / k, cc.verify / k, cc.review / k, cc.merge, cc.release);
+}
 function verdict() {
   const k = base(S.P).k, e = S.early / k, dy = S.endDay;
   const grade = dy <= 265 && e <= 500 ? 'S' : dy <= 310 ? 'A' : dy <= 400 ? 'B' : 'C';
@@ -314,7 +320,7 @@ function verdict() {
   const spent = S.spent || UP.filter(x => S.own[x.id]).reduce((t, x) => t + price(x, S.P), 0);
   const big = v => v >= 1000 ? '$' + (v / 1000).toFixed(1) + 'M' : '$' + Math.round(v) + 'k';
   const n = v => v < 10 ? (Math.round(v * 10) / 10).toString() : Math.round(v).toLocaleString('en-US');
-  const from = base(S.P).flow, to = Math.max(S.peak, from);
+  const from = base(S.P).flow, to = Math.max(sustained(), from);
   return {grade, arch, journey: S.journey.map(x => stName[x]), devs: S.P.devs, from: n(from), to: n(to), times: Math.round(to / from), cost: big(spent), moves: Math.max(0, S.journey.length - 1)};
 }
 function shareImage(v) {
@@ -390,9 +396,8 @@ function tick() {
     sfx.end();
   }
   // the last optimization needs time to show in the numbers, so the report waits for the line to settle
-  if (S.done && !S.reported && S.day >= S.endDay + 10) {
-    const h = S.hist, a = h.slice(-7).reduce((t, x) => t + x, 0), b = h.slice(-14, -7).reduce((t, x) => t + x, 0);
-    if (a <= b * 1.01 || S.day >= S.endDay + 45) {
+  if (S.done && !S.reported && S.day >= S.endDay + 5) {
+    if (avg7(S) >= sustained() * 0.95 || S.day >= S.endDay + 60) {
       S.reported = true; $('rep').hidden = false;
       logLine('The line has settled. The last constraint is deciding what to build.', 'good');
       report(true);
