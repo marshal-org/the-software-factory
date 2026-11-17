@@ -386,9 +386,18 @@ function tick() {
   if (S.day % 37 === 0 && !S.done) { const g = GOSSIP.filter(x => x[0](S.own)); if (g.length) logLine(g[Math.floor(Math.random() * g.length)][1]); }
   if (!S.done && LAMPS.every(l => S.own[l.id])) {
     S.done = true; S.endDay = S.day;
-    logLine('Lights out. The factory runs without a human in the loop. The last constraint is deciding what to build.', 'good');
-    sfx.end(); report(true);
-    track('game_lights_out', {day: S.endDay, grade: verdict().grade, early: S.early / base(S.P).k, incidents: S.incidents});
+    logLine('Lights out. The factory runs without a human in the loop. Your shift report comes once the line has settled.', 'good');
+    sfx.end();
+  }
+  // the last optimization needs time to show in the numbers, so the report waits for the line to settle
+  if (S.done && !S.reported && S.day >= S.endDay + 10) {
+    const h = S.hist, a = h.slice(-7).reduce((t, x) => t + x, 0), b = h.slice(-14, -7).reduce((t, x) => t + x, 0);
+    if (a <= b * 1.01 || S.day >= S.endDay + 45) {
+      S.reported = true; $('rep').hidden = false;
+      logLine('The line has settled. The last constraint is deciding what to build.', 'good');
+      report(true);
+      track('game_lights_out', {day: S.endDay, grade: verdict().grade, early: S.early / base(S.P).k, incidents: S.incidents});
+    }
   }
   render();
 }
@@ -400,7 +409,9 @@ function start(data) {
   if (!booted) build();
   resetView(); $('chaos').setAttribute('aria-pressed', S.chaos); $('chaos').textContent = S.chaos ? 'Chaos on' : 'Chaos off';
   if (!S.hist.length) { const ch = S.chaos; S.chaos = false; for (let i = 0; i < 3; i++) step(S); S.chaos = ch; logLine('The shift starts. Watch where the boxes pile up, then click that machine.'); track('game_started'); }
-  if (S.done) report(false);
+  if (S.done && S.reportAt === undefined && S.reported === undefined && S.day > S.endDay + 45) S.reported = true; // games saved before the report waited
+  $('rep').hidden = !S.reported;
+  if (S.reported) report(false);
   render(); run();
   if (!booted) { booted = true; sizeCanvas(); new ResizeObserver(sizeCanvas).observe(cv); window.addEventListener('resize', sizeCanvas); requestAnimationFrame(draw); }
 }
@@ -414,6 +425,7 @@ $('snd').addEventListener('click', e => {
 $('chaos').addEventListener('click', e => { S.chaos = !S.chaos; e.target.setAttribute('aria-pressed', S.chaos); e.target.textContent = S.chaos ? 'Chaos on' : 'Chaos off'; if (!S.chaos) S.fx = []; });
 $('restart').addEventListener('click', () => start({P0: S.P}));
 $('help').addEventListener('click', () => $('dlg-help').showModal());
+$('rep').addEventListener('click', () => report(true)); // rebuilt each time, with the numbers as they are now
 $('org').addEventListener('click', () => { $('dx').hidden = true; $('dlg-org').showModal(); });
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
 function readOrg() {

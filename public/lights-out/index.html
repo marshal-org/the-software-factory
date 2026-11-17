@@ -72,6 +72,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, canvas:focus-vi
 .btn { border: 1px solid var(--ink); background: transparent; padding: 6px 9px; font-weight: 600; font-size: 12.5px; white-space: nowrap; }
 .btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
 .btn.go { background: var(--accent); border-color: var(--accent); color: #111; }
+.btn[hidden] { display: none; }
 
 /* stage: factory, signals and the board share one width so each column sits under its machine */
 .stage { overflow-x: auto; }
@@ -184,6 +185,7 @@ dialog ol { padding-left: 20px; }
     <button class="btn" id="snd" aria-pressed="false">Sound off</button>
     <button class="btn" id="chaos" aria-pressed="true">Chaos on</button>
     <button class="btn go" id="org">My factory</button>
+    <button class="btn go" id="rep" hidden>Shift report</button>
     <button class="btn" id="help">How to play</button>
     <button class="btn" id="restart">Restart</button>
   </div>
