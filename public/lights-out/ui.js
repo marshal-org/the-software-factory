@@ -335,8 +335,8 @@ function shareImage(v) {
   const cells = [['IT TOOK', S.endDay + ' days'], ['FACTORY COST', v.cost], ['INCIDENTS ON THE WAY', String(S.incidents)]];
   cells.forEach(([k, val], i) => { const x = 62 + i * 250; g.font = '400 15px ' + M; g.fillStyle = '#8c968f'; g.fillText(k, x, 376); g.font = '600 34px ' + M; g.fillStyle = '#e9ece4'; g.fillText(val, x, 414); });
   // grade
-  g.textAlign = 'right'; g.font = '400 15px ' + M; g.fillStyle = '#8c968f'; g.fillText('GRADE', 1138, 150);
-  g.font = '900 210px ' + D; g.fillStyle = '#ffb347'; g.fillText(v.grade, 1142, 322);
+  g.textAlign = 'right'; g.font = '400 15px ' + M; g.fillStyle = '#8c968f'; g.fillText('GRADE', 1138, 118);
+  g.font = '900 190px ' + D; g.fillStyle = '#ffb347'; g.fillText(v.grade, 1142, 318);
   g.font = '600 17px ' + M; g.fillStyle = '#e9ece4'; g.fillText(v.arch.toUpperCase(), 1138, 356); g.textAlign = 'left';
   // the constraint path
   g.font = '400 15px ' + M; g.fillStyle = '#8c968f';
