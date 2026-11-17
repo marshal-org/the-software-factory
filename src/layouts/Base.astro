@@ -5,6 +5,8 @@ const { fullTitle, type = fm ? 'article' : 'website', author = fm?.author } = As
 const pageTitle = fullTitle ?? (title ? `${title} · The Software Factory` : 'The Software Factory');
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImage = new URL('/og.png', Astro.site).href;
+// links shared from the footer say where they were shared, so visits can be traced to a channel
+const shared = ch => encodeURIComponent(`${canonical}?utm_source=${ch}&utm_medium=share`);
 const person = { '@type': 'Person', name: 'Ofir Makmal', url: 'https://il.linkedin.com/in/ofirmakmal' };
 const site = { '@type': 'WebSite', name: 'The Software Factory', url: Astro.site.href };
 const ld = type === 'article'
@@ -116,7 +118,7 @@ footer .nw { white-space: nowrap; }
       He has led engineering at several startups as VP Engineering and CTO, and spent years as a consultant helping dozens of engineering teams tune both their software and the way they deliver it.</p>
     <div class="row">
       <span><a href="/what-is-a-software-factory/">What is a software factory?</a> · <a href="/privacy/">Privacy</a> · <a href="/privacy/" data-consent-open>Cookie settings</a> · Code MIT, words CC BY 4.0</span>
-      <span class="share">Share this page: <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}`} target="_blank" rel="noopener">LinkedIn</a><a href={`https://x.com/intent/post?url=${encodeURIComponent(canonical)}&text=${encodeURIComponent(title || 'The Software Factory')}&via=${xSite.slice(1)}`} target="_blank" rel="noopener">X</a><a href={`https://wa.me/?text=${encodeURIComponent((title || 'The Software Factory') + ' ' + canonical)}`} target="_blank" rel="noopener">WhatsApp</a></span>
+      <span class="share">Share this page: <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shared('linkedin')}`} target="_blank" rel="noopener">LinkedIn</a><a href={`https://x.com/intent/post?url=${shared('x')}&text=${encodeURIComponent(title || 'The Software Factory')}&via=${xSite.slice(1)}`} target="_blank" rel="noopener">X</a><a href={`https://wa.me/?text=${encodeURIComponent(title || 'The Software Factory')}%20${shared('whatsapp')}`} target="_blank" rel="noopener">WhatsApp</a></span>
     </div>
   </footer>
 </div>

@@ -362,7 +362,7 @@ function shareImage(v) {
 let shareCv = null;
 function report(show) {
   const v = verdict();
-  S.result = `LIGHTS OUT. My team of ${v.devs} engineers went from ${v.from} to ${v.to} features a day, with no human left in the loop.\nIt took ${S.endDay} days and ${v.cost} of factory upgrades, with ${S.incidents} incident${S.incidents === 1 ? '' : 's'} on the way. Grade ${v.grade}.\nCan you beat it? https://thesoftwarefactory.site/lights-out/`;
+  S.result = `LIGHTS OUT. My team of ${v.devs} engineers went from ${v.from} to ${v.to} features a day, with no human left in the loop.\nIt took ${S.endDay} days and ${v.cost} of factory upgrades, with ${S.incidents} incident${S.incidents === 1 ? '' : 's'} on the way. Grade ${v.grade}.\nCan you beat it? https://thesoftwarefactory.site/lights-out/?utm_source=shift-report&utm_medium=share`;
   $('r-text').textContent = S.result; $('copied').textContent = '';
   shareCv = shareImage(v); $('shareimg').src = shareCv.toDataURL('image/png');
   if (show) $('dlg-end').showModal();
