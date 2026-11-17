@@ -110,7 +110,7 @@ function fresh(P0) {
   return {P, day:0, budget:120 * b.k, early:0, shipped:0, own: P.ai === 'agents' ? {agents:true} : {}, done:false, chaos:true,
     lim:160 * b.k, unit:Math.max(1, b.k),
     q:{code:1.3 * f, ci:f, verify:1.5 * f, review:1.7 * f, merge:0.5 * f, release:2 * f},
-    util:{}, proc:{}, hist:[], pend:[], log:[], journey:[], peak:0, fx:[], buys:[], sh:{}, incidents:0};
+    util:{}, proc:{}, hist:[], pend:[], log:[], journey:[], peak:0, fx:[], buys:[], sh:{}, incidents:0, spent:0};
 }
 function eff(s) {
   const c = caps(s.own, s.P);
@@ -164,6 +164,7 @@ function buy(s, up) {
   const cost = price(up, s.P), early = up.kind === 'cap' && (constraint(s.own, s.P) !== up.st || (up.id === 'flake' && !caps(s.own, s.P).flaky));
   s.budget -= cost; s.own[up.id] = true;
   if (early) s.early += cost;
+  s.spent = (s.spent || 0) + cost;
   s.buys.push({day:s.day, nm:up.nm});
   s.pend.push({at:s.day + 10, nm:up.nm, before:avg7(s), kind:up.kind, early});
   return true;

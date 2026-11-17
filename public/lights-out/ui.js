@@ -310,34 +310,51 @@ function verdict() {
   const k = base(S.P).k, e = S.early / k, dy = S.endDay;
   const grade = dy <= 265 && e <= 500 ? 'S' : dy <= 310 ? 'A' : dy <= 400 ? 'B' : 'C';
   const arch = e <= 400 ? 'The constraint whisperer' : e >= 2400 ? 'The tool collector' : S.incidents >= 12 ? 'The firefighter' : dy > 400 ? 'The steering committee' : 'The onion peeler';
-  return {grade, arch, journey: S.journey.map(x => stName[x]).join(' → ')};
+  // everything installed, for games saved before total spend was tracked
+  const spent = S.spent || UP.filter(x => S.own[x.id]).reduce((t, x) => t + price(x, S.P), 0);
+  const big = v => v >= 1000 ? '$' + (v / 1000).toFixed(1) + 'M' : '$' + Math.round(v) + 'k';
+  const n = v => v < 10 ? (Math.round(v * 10) / 10).toString() : Math.round(v).toLocaleString('en-US');
+  const from = base(S.P).flow, to = Math.max(S.peak, from);
+  return {grade, arch, journey: S.journey.map(x => stName[x]), devs: S.P.devs, from: n(from), to: n(to), times: Math.round(to / from), cost: big(spent), moves: Math.max(0, S.journey.length - 1)};
 }
 function shareImage(v) {
   const c = document.createElement('canvas'); c.width = 1200; c.height = 630; const g = c.getContext('2d');
+  const D = '"Big Shoulders Display", Impact, sans-serif', M = '"IBM Plex Mono", monospace';
   g.fillStyle = '#070a09'; g.fillRect(0, 0, 1200, 630);
   g.fillStyle = '#ffb347'; g.fillRect(0, 0, 1200, 10);
   g.textBaseline = 'alphabetic'; g.textAlign = 'left';
-  g.font = '900 150px "Big Shoulders Display", Impact, sans-serif'; g.fillStyle = '#e9ece4'; g.fillText('LIGHTS', 60, 180);
-  const w = g.measureText('LIGHTS ').width; g.fillStyle = '#ffb347'; g.shadowColor = '#ffb347'; g.shadowBlur = 30; g.fillText('OUT', 60 + w, 180); g.shadowBlur = 0;
-  g.font = '600 24px "IBM Plex Mono", monospace'; g.fillStyle = '#8c968f'; g.fillText('Nobody is here. Still shipping.', 64, 226);
-  g.font = '900 64px "Big Shoulders Display", Impact, sans-serif'; g.fillStyle = '#e9ece4'; g.fillText(v.arch.toUpperCase(), 60, 320, 800);
-  const cells = [['WENT DARK ON', 'day ' + S.endDay], ['EARLY SPEND', money(S.early)], ['INCIDENTS', String(S.incidents)], ['PEAK PER DAY', S.peak.toFixed(0)]];
-  cells.forEach(([k, val], i) => { const x = 64 + i * 215; g.font = '400 16px "IBM Plex Mono", monospace'; g.fillStyle = '#8c968f'; g.fillText(k, x, 372); g.font = '600 32px "IBM Plex Mono", monospace'; g.fillStyle = '#e9ece4'; g.fillText(val, x, 410); });
-  g.font = '900 230px "Big Shoulders Display", Impact, sans-serif'; g.fillStyle = '#ffb347'; g.textAlign = 'right'; g.fillText(v.grade, 1140, 400); g.textAlign = 'left';
-  g.font = '400 16px "IBM Plex Mono", monospace'; g.fillStyle = '#8c968f'; g.fillText('MY CONSTRAINT MOVED', 64, 458);
-  g.font = '400 18px "IBM Plex Mono", monospace'; g.fillStyle = '#e9ece4';
-  const words = v.journey.split(' '); let line = '', y = 486;
-  words.forEach(wd => { if (g.measureText(line + wd).width > 1070) { g.fillText(line, 64, y); y += 26; line = ''; } line += wd + ' '; }); if (y < 545) g.fillText(line, 64, y);
+  // name of the game, small: the sentence under it is the point
+  g.font = '900 64px ' + D; g.fillStyle = '#e9ece4'; g.fillText('LIGHTS', 60, 92);
+  const w = g.measureText('LIGHTS ').width; g.fillStyle = '#ffb347'; g.shadowColor = '#ffb347'; g.shadowBlur = 22; g.fillText('OUT', 60 + w, 92); g.shadowBlur = 0;
+  g.font = '400 19px ' + M; g.fillStyle = '#8c968f'; g.fillText('I ran a software factory until no human was left in the loop.', 62, 128);
+  // the result, as a sentence anyone can read
+  g.font = '900 62px ' + D; g.fillStyle = '#e9ece4';
+  g.fillText(`MY TEAM OF ${v.devs} ENGINEERS WENT FROM`, 60, 218, 900);
+  g.fillStyle = '#ffb347'; g.fillText(`${v.from} TO ${v.to} FEATURES A DAY.`, 60, 284, 900);
+  g.font = '400 21px ' + M; g.fillStyle = '#c3c9c0'; g.fillText(`${v.times}x the output. Same people.`, 62, 320);
+  const cells = [['IT TOOK', S.endDay + ' days'], ['FACTORY COST', v.cost], ['INCIDENTS ON THE WAY', String(S.incidents)]];
+  cells.forEach(([k, val], i) => { const x = 62 + i * 250; g.font = '400 15px ' + M; g.fillStyle = '#8c968f'; g.fillText(k, x, 376); g.font = '600 34px ' + M; g.fillStyle = '#e9ece4'; g.fillText(val, x, 414); });
+  // grade
+  g.textAlign = 'right'; g.font = '400 15px ' + M; g.fillStyle = '#8c968f'; g.fillText('GRADE', 1138, 150);
+  g.font = '900 210px ' + D; g.fillStyle = '#ffb347'; g.fillText(v.grade, 1142, 322);
+  g.font = '600 17px ' + M; g.fillStyle = '#e9ece4'; g.fillText(v.arch.toUpperCase(), 1138, 356); g.textAlign = 'left';
+  // the constraint path
+  g.font = '400 15px ' + M; g.fillStyle = '#8c968f';
+  g.fillText(v.moves ? `EVERY FIX MOVED THE BOTTLENECK SOMEWHERE ELSE. MINE MOVED ${v.moves} TIME${v.moves === 1 ? '' : 'S'}:` : 'THE BOTTLENECK NEVER MOVED:', 62, 462);
+  g.font = '400 18px ' + M; g.fillStyle = '#e9ece4';
+  let line = '', y = 490, lines = 0;
+  v.journey.forEach((st, i) => { const piece = (i ? '→ ' : '') + st + ' '; if (g.measureText(line + piece).width > 1070 && lines < 1) { g.fillText(line, 62, y); y += 25; line = ''; lines++; } line += piece; });
+  g.fillText(line.length > 96 ? line.slice(0, 93) + '…' : line, 62, y);
   // the dark line
   g.fillStyle = '#141a18'; g.fillRect(0, 590, 1200, 8);
-  for (let i = 0; i < 7; i++) { const x = 90 + i * 155; g.fillStyle = '#141a18'; g.fillRect(x, 548, 70, 42); g.fillStyle = '#73d394'; g.fillRect(x + 56, 554, 6, 6); g.fillStyle = '#e39a14'; g.fillRect(x + 92, 580, 9, 9); g.fillRect(x + 120, 580, 9, 9); }
-  g.font = '400 15px "IBM Plex Mono", monospace'; g.fillStyle = '#8c968f'; g.textAlign = 'right'; g.fillText('the software factory simulator', 1140, 620);
+  for (let i = 0; i < 4; i++) { const x = 62 + i * 100; g.fillStyle = '#141a18'; g.fillRect(x, 556, 52, 34); g.fillStyle = '#73d394'; g.fillRect(x + 40, 561, 5, 5); g.fillStyle = '#e39a14'; g.fillRect(x + 66, 582, 8, 8); }
+  g.textAlign = 'right'; g.font = '600 19px ' + M; g.fillStyle = '#ffb347'; g.fillText('Can you beat it?  thesoftwarefactory.site/lights-out', 1138, 584);
   return c;
 }
 let shareCv = null;
 function report(show) {
   const v = verdict();
-  S.result = `LIGHTS OUT. I ran a software factory until no human was left in the loop.\n${v.arch}, grade ${v.grade}. Dark on day ${S.endDay}, ${money(S.early)} spent too early, ${S.incidents} incidents.\nMy constraint moved: ${v.journey}`;
+  S.result = `LIGHTS OUT. My team of ${v.devs} engineers went from ${v.from} to ${v.to} features a day, with no human left in the loop.\nIt took ${S.endDay} days and ${v.cost} of factory upgrades, with ${S.incidents} incident${S.incidents === 1 ? '' : 's'} on the way. Grade ${v.grade}.\nCan you beat it? https://thesoftwarefactory.site/lights-out/`;
   $('r-text').textContent = S.result; $('copied').textContent = '';
   shareCv = shareImage(v); $('shareimg').src = shareCv.toDataURL('image/png');
   if (show) $('dlg-end').showModal();
