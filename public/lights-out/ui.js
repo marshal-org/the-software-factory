@@ -435,9 +435,42 @@ $('help').addEventListener('click', () => $('dlg-help').showModal());
 $('rep').addEventListener('click', () => report(true)); // rebuilt each time, with the numbers as they are now
 $('org').addEventListener('click', () => { $('dx').hidden = true; $('dlg-org').showModal(); });
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
+/* ---------- numbers from a link ---------- */
+// A link can carry measured numbers for "My factory". The factorymeter report ends with one:
+//   /lights-out/#devs=12&prw=40&ciMin=9&revH=3.5&dpw=6&ai=agents&ciRuns=3&rework=0.2
+// The numbers ride after the "#", which a browser never sends to a server. The same names in the
+// query string work too. They are read once and then taken out of the address bar, before the
+// analytics scripts load, so the promise on the privacy page holds: these numbers stay in the browser.
+const FIELD = {devs:'o-devs', prw:'o-prw', ciMin:'o-ci', revH:'o-rev', envs:'o-envs', dpw:'o-dpw', pms:'o-pms', ai:'o-ai'};
+const RANGE = {devs:[1, 2000], prw:[1, 20000], ciMin:[1, 600], revH:[0.5, 200], envs:[1, 200], dpw:[0.25, 500], pms:[1, 500], ciRuns:[1, 20], rework:[0, 0.9]};
+let linked = {}; // measured numbers the form has no field for: ciRuns and rework
+function fromLink() {
+  let got = null;
+  try {
+    const url = new URL(location.href), hash = new URLSearchParams(url.hash.slice(1));
+    const get = k => hash.get(k) ?? url.searchParams.get(k);
+    for (const k in RANGE) { const v = parseFloat(get(k)); if (isFinite(v)) (got = got || {})[k] = Math.min(RANGE[k][1], Math.max(RANGE[k][0], v)); }
+    const ai = get('ai'); if (ai === 'auto' || ai === 'agents') (got = got || {}).ai = ai;
+    if (!got) return null;
+    for (const k of Object.keys(RANGE).concat('ai')) url.searchParams.delete(k);
+    history.replaceState(null, '', url.pathname + url.search);
+  } catch (e) { return null; }
+  return got;
+}
+function loadLink() {
+  const got = fromLink(); if (!got) return;
+  const label = id => $(id).parentElement.firstChild.textContent, filled = [], left = [];
+  for (const k in FIELD) { if (k in got) { $(FIELD[k]).value = got[k]; filled.push(label(FIELD[k])); } else left.push(label(FIELD[k])); }
+  linked = {}; const also = [];
+  if ('ciRuns' in got) { linked.ciRuns = got.ciRuns; also.push(`${got.ciRuns} CI runs per PR`); }
+  if ('rework' in got) { linked.rework = got.rework; also.push(`${Math.round(got.rework * 100)}% of PRs sent back as rework`); }
+  $('o-from').textContent = `Filled in from your link: ${filled.join(', ')}.` + (also.length ? ` Also measured: ${also.join(' and ')}.` : '') + (left.length ? ` Still the defaults, so check them: ${left.join(', ')}.` : '');
+  $('o-from').hidden = false;
+  $('dlg-org').showModal(); $('o-dx').click();
+}
 function readOrg() {
   const n = (id, lo, hi) => Math.min(hi, Math.max(lo, parseFloat($(id).value) || lo));
-  return {devs: n('o-devs', 1, 2000), prw: n('o-prw', 1, 20000), ciMin: n('o-ci', 1, 600), revH: n('o-rev', 0.5, 200), envs: n('o-envs', 1, 200), dpw: n('o-dpw', 0.25, 500), pms: n('o-pms', 1, 500), ai: $('o-ai').value};
+  return Object.assign({devs: n('o-devs', 1, 2000), prw: n('o-prw', 1, 20000), ciMin: n('o-ci', 1, 600), revH: n('o-rev', 0.5, 200), envs: n('o-envs', 1, 200), dpw: n('o-dpw', 0.25, 500), pms: n('o-pms', 1, 500), ai: $('o-ai').value}, linked);
 }
 $('o-dx').addEventListener('click', () => {
   const P = readOrg(), r = diagnose(P), c = r.c0, f = v => v < 20 ? v.toFixed(1) : Math.round(v);
@@ -446,8 +479,8 @@ $('o-dx').addEventListener('click', () => {
 });
 $('o-play').addEventListener('click', () => { const P = readOrg(), r = diagnose(P); $('dlg-org').close(); start({P0: P}); select(r.now); track('game_my_factory', {constraint: r.now}); logLine(`Your line is loaded. Constraint today: ${stName[r.now]}.`, 'good'); render(); });
 $('o-reset').addEventListener('click', () => {
-  const m = {devs:'o-devs', prw:'o-prw', ciMin:'o-ci', revH:'o-rev', envs:'o-envs', dpw:'o-dpw', pms:'o-pms', ai:'o-ai'};
-  for (const k in m) $(m[k]).value = DEF[k];
+  for (const k in FIELD) $(FIELD[k]).value = DEF[k];
+  linked = {}; $('o-from').hidden = true;
   $('dlg-org').close(); start({P0: DEF}); logLine('Back to the default ten-engineer team.'); render();
 });
 $('copy').addEventListener('click', () => {
@@ -462,3 +495,4 @@ window.addEventListener('scroll', () => { if (!touch) hideTip(); }, {passive: tr
 window.addEventListener('keydown', e => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return; const i = '1234567'.indexOf(e.key); if (i >= 0) select(ST[i].id); if (e.key === ' ' && e.target === document.body) { e.preventDefault(); $('pause').click(); } });
 window.claude?.hot?.snapshot?.(() => S);
 if (window.claude?.hot?.ready) window.claude.hot.ready(start); else start(window.claude?.hot?.data ?? {});
+loadLink();

@@ -51,12 +51,13 @@ const UP = [
   {id:'rollout', st:'release', kind:'cap', cost:300, need:['cd'], nm:'Progressive rollout, auto-rollback', d:'Ship to 1%, watch, widen. Bad releases undo themselves, so a bad deploy stops being an incident.'},
 ];
 // the organisation being simulated; defaults are a ten-engineer team
+// a link with measured numbers can add two more: ciRuns (CI runs per PR, 4 if absent) and rework (share of PRs sent back, 0.28 if absent)
 const DEF = {devs:10, prw:30, ciMin:28, revH:6, envs:2, dpw:1, pms:2, ai:'auto'};
 function base(P) {
   const flow = P.prw / 5; // merged PRs per working day
   return {
     flow, rate: flow / P.devs,
-    ci: Math.max(2, P.devs / 3) * 480 / (P.ciMin * 4),   // runners x minutes per day / (minutes per run x 4 runs per PR)
+    ci: Math.max(2, P.devs / 3) * 480 / (P.ciMin * (P.ciRuns || 4)), // runners x minutes per day / (minutes per run x runs per PR; 4 unless measured)
     review: flow * (1 + 6 / P.revH),                      // long waits mean little slack
     verify: P.envs * 5.5,                                 // each shared environment hosts about 5.5 checks a day
     release: Math.max(flow * 1.2, 16 * P.dpw),
@@ -80,7 +81,7 @@ function caps(o, P) {
     review: b.review * (o.aireview ? 3 : 1) * (o.confidence ? 6 : 1),
     merge: b.merge * (o.queue ? 10 : 1) * (conflicts ? 0.6 : 1),
     release: b.release * (o.cd ? 6 : 1) * (o.rollout ? 3 : 1),
-    rework: Math.max(0.05, 0.28 - (o.briefs ? 0.10 : 0) - (o.data ? 0.07 : 0) - (o.regress ? 0.06 : 0)),
+    rework: Math.max(0.05, (P.rework ?? 0.28) - (o.briefs ? 0.10 : 0) - (o.data ? 0.07 : 0) - (o.regress ? 0.06 : 0)),
     flaky, conflicts,
   };
 }

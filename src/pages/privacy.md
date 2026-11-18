@@ -29,6 +29,7 @@ You can change your answer at any time with "Cookie settings" at the bottom of e
 
 - No account, no email, no name.
 - The numbers you type into "My factory" never leave your browser.
+- A link can fill in "My factory" for you, as the report from [factorymeter](https://github.com/marshal-org/factorymeter) does. Those numbers sit after the `#` in the link, a part of the address that browsers do not send to any server. The page reads them and then removes them from the address bar.
 - No advertising.
 
 Turning on "Do Not Track" or "Global Privacy Control" in your browser switches off all measurement, and you will not be asked about cookies.
