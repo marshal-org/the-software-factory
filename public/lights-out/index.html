@@ -150,6 +150,8 @@ dialog ol { padding-left: 20px; }
 .form input, .form select { border: 1px solid var(--line); background: var(--bg); padding: 6px 8px; font-family: var(--mono); width: 100%; }
 .dx { border-left: 3px solid var(--accent); padding: 4px 0 4px 12px; margin: 12px 0; }
 .dx[hidden] { display: none; }
+.meter { font-size: 13px; }
+.meter a { color: var(--accent); font-weight: 600; }
 .from { border-left: 3px solid var(--accent); padding-left: 12px; color: var(--ink, inherit); }
 .from[hidden] { display: none; }
 .dx b { font: 900 26px var(--display); text-transform: uppercase; }
@@ -232,6 +234,7 @@ dialog ol { padding-left: 20px; }
   <h3>Diagnose my factory</h3>
   <p>Enter rough numbers for your own team. The simulator starts from your line, names your constraint today and suggests the first three moves.</p>
   <p class="from" id="o-from" hidden></p>
+  <p class="meter" id="o-meter">Guessing? <a href="https://marshal-org.github.io/factorymeter/?utm_source=thesoftwarefactory&utm_medium=referral&utm_content=lights-out" target="_blank" rel="noopener">factorymeter</a> measures these from your GitHub history and sends you back here with them filled in. Free, open source, read-only.</p>
   <div class="form">
     <label for="o-devs">Engineers<input id="o-devs" type="number" min="1" max="2000" value="10"></label>
     <label for="o-prw">PRs merged per week<input id="o-prw" type="number" min="1" max="20000" value="30"></label>
