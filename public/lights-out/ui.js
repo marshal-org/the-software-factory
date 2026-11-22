@@ -465,7 +465,7 @@ function loadLink() {
   if ('ciRuns' in got) { linked.ciRuns = got.ciRuns; also.push(`${got.ciRuns} CI runs per PR`); }
   if ('rework' in got) { linked.rework = got.rework; also.push(`${Math.round(got.rework * 100)}% of PRs sent back as rework`); }
   $('o-from').textContent = `Filled in from your link: ${filled.join(', ')}.` + (also.length ? ` Also measured: ${also.join(' and ')}.` : '') + (left.length ? ` Still the defaults, so check them: ${left.join(', ')}.` : '');
-  $('o-from').hidden = false;
+  $('o-from').hidden = false; $('o-meter').hidden = true;
   $('dlg-org').showModal(); $('o-dx').click();
 }
 function readOrg() {
@@ -480,7 +480,7 @@ $('o-dx').addEventListener('click', () => {
 $('o-play').addEventListener('click', () => { const P = readOrg(), r = diagnose(P); $('dlg-org').close(); start({P0: P}); select(r.now); track('game_my_factory', {constraint: r.now}); logLine(`Your line is loaded. Constraint today: ${stName[r.now]}.`, 'good'); render(); });
 $('o-reset').addEventListener('click', () => {
   for (const k in FIELD) $(FIELD[k]).value = DEF[k];
-  linked = {}; $('o-from').hidden = true;
+  linked = {}; $('o-from').hidden = true; $('o-meter').hidden = false;
   $('dlg-org').close(); start({P0: DEF}); logLine('Back to the default ten-engineer team.'); render();
 });
 $('copy').addEventListener('click', () => {

@@ -6,6 +6,7 @@ const start = [
   ['/lights-out/', 'Play the simulator', 'Lights Out puts you in charge of a ten-engineer delivery line. Find where work piles up, install the right optimization, and watch the next pile appear. You can load your own team\'s numbers.'],
   ['/playbook/', 'Read the Playbook', 'The plays that hold up in practice. Each one opens with a scene you will recognise and closes with a move for Monday.'],
   ['/manifesto/', 'Argue with the manifesto', 'Seven beliefs about shipping software with agents, and a list of things we refuse.'],
+  ['https://marshal-org.github.io/factorymeter/?utm_source=thesoftwarefactory&utm_medium=referral&utm_content=start', 'Measure your line', 'factorymeter reads your GitHub history and names the station your work waits at. Free, open source, read-only.'],
   ['/journey/', 'Find your stage', 'Six stages from autocomplete to lights out, with the bottleneck that tends to show up at each.'],
 ];
 ---
@@ -21,6 +22,21 @@ const start = [
       <div class="line" aria-hidden="true">{['Spec', 'Code', 'CI', 'Verify', 'Review', 'Merge', 'Release'].map((s, i) => <div class="m"><i style={`height:${[0, 54, 46, 10, 14, 6, 6][i]}px`}></i><span>{s}</span></div>)}</div>
     </a>
     <p>Work piles up in front of the constraint. Fix it and the pile moves somewhere else. That is the whole idea, and the simulator lets you feel it in ten minutes.</p>
+  </section>
+
+  <section class="reading">
+    <div>
+      <p class="kicker">factorymeter</p>
+      <h2>The simulator runs on guesses. Take a reading of your real line.</h2>
+      <p>Lights Out starts from numbers you type in. factorymeter measures them. It reads your GitHub history, follows every change through the same seven stations, splits agent work from human work, and names the station holding your line today. Then it hands you a link that opens Lights Out with your measured numbers already loaded.</p>
+      <p><a class="btn" href="https://marshal-org.github.io/factorymeter/?utm_source=thesoftwarefactory&utm_medium=referral&utm_content=home">Get your reading</a> <a class="more" href="https://github.com/marshal-org/factorymeter">Source on GitHub</a></p>
+    </div>
+    <div>
+      <pre><code>curl -fsSL https://marshal-org.github.io/factorymeter/install.sh | sh
+factorymeter init
+factorymeter serve</code></pre>
+      <p class="sub">Free and open source. Read-only token, runs on your machine, sends nothing anywhere except the GitHub API.</p>
+    </div>
   </section>
 
   <section class="two">
@@ -76,6 +92,11 @@ const start = [
 .factors a { color: var(--ink); text-decoration: none; font-weight: 600; }
 .factors a:hover { color: var(--accent); }
 .factors p { margin: 0; grid-column: 2; color: var(--muted); font-size: 15px; line-height: 1.4; }
+.reading { margin-top: 56px; border-top: 4px solid var(--ink); padding-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 48px; align-items: start; }
+.reading h2 { max-width: 22ch; }
+.reading p { max-width: 54ch; }
+.kicker { font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--accent); margin: 0 0 8px; }
+.reading pre { background: var(--ink); color: var(--bg); font: 13px/1.6 var(--mono); padding: 14px 16px; white-space: pre-wrap; overflow-wrap: anywhere; margin: 28px 0 0; }
 .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 48px; }
 .two p { max-width: 54ch; }
 .start { list-style: none; padding: 0; margin: 20px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px 28px; }
